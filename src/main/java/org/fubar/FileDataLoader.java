@@ -44,7 +44,6 @@ class FileDataLoader implements DataLoader {
                 persons.add(person);
             }
         }
-
         return persons;
     }
 }

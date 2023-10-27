@@ -28,8 +28,8 @@ class StudentService {
             personNameDataGroup.addPerson(person);
         }
 
-        List<Person> tenClassStudents = classroomDataGroups.getPersons("10");
-        List<Person> elevenClassStudents = classroomDataGroups.getPersons("11");
+        MyList<Person> tenClassStudents = classroomDataGroups.getPersons("10");
+        MyList<Person> elevenClassStudents = classroomDataGroups.getPersons("11");
         System.out.println("\nСредняя оценка в 10 классе: " + averageMark(tenClassStudents));
         System.out.println("Средняя оценка в 11 классе: " + averageMark(elevenClassStudents));
     }
@@ -45,7 +45,7 @@ class StudentService {
 
         List<Person> honorStudents = new ArrayList<>();
         for (int age = 15; age <= 100; age++) {
-            List<Person> studentsOver14 = personAgeDataGroups.getPersons(String.valueOf(age));
+            MyList<Person> studentsOver14 = personAgeDataGroups.getPersons(String.valueOf(age));
             for (Person student : studentsOver14) {
                 if (student.physics() == 5 && student.mathematics() == 5 &&
                         student.rus() == 5 && student.literature() == 5 &&
@@ -72,7 +72,7 @@ class StudentService {
         try (Scanner scanner = new Scanner(System.in)) {
             System.out.println("\nВведите фамилию ученика для получения информации: ");
             String lastName = scanner.nextLine();
-            List<Person> studentsWithLastName = personNameDataGroup.getPersons(String.valueOf(lastName.charAt(0)));
+            MyList<Person> studentsWithLastName = personNameDataGroup.getPersons(String.valueOf(lastName.charAt(0)));
             List<Person> matchingStudents = new ArrayList<>();
             for (Person student : studentsWithLastName) {
                 if (student.lastName().equalsIgnoreCase(lastName)) {
@@ -87,7 +87,7 @@ class StudentService {
         }
     }
 
-    private double averageMark(List<Person> classStudents) {
+    private double averageMark(MyList<Person> classStudents) {
         int totalMarks = 0;
         int totalStudents = 0;
         for (Person person : classStudents) {
