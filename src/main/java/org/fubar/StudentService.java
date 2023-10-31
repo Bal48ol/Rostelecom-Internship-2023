@@ -6,20 +6,15 @@ import java.util.List;
 import java.util.Scanner;
 
 class StudentService {
-    private final DataLoader dataLoader;
     private final DataGroup classroomDataGroups;
     private final DataGroup personAgeDataGroups;
     private final DataGroup personNameDataGroup;
 
-    public StudentService(DataLoader dataLoader) {
-        this.dataLoader = dataLoader;
+    public StudentService(DataLoader dataLoader) throws IOException {
         classroomDataGroups = new DataGroup(person -> String.valueOf(person.group()));
         personAgeDataGroups = new DataGroup(person -> String.valueOf(person.age()));
         personNameDataGroup = new DataGroup(person -> String.valueOf(person.lastName().charAt(0)));
 
-    }
-
-    public void calculateAverageMarks() throws IOException {
         List<Person> persons = dataLoader.loadData();
 
         for (Person person : persons) {
@@ -27,22 +22,16 @@ class StudentService {
             personAgeDataGroups.addPerson(person);
             personNameDataGroup.addPerson(person);
         }
+    }
 
+    public void calculateAverageMarks() {
         MyList<Person> tenClassStudents = classroomDataGroups.getPersons("10");
         MyList<Person> elevenClassStudents = classroomDataGroups.getPersons("11");
         System.out.println("\nСредняя оценка в 10 классе: " + averageMark(tenClassStudents));
         System.out.println("Средняя оценка в 11 классе: " + averageMark(elevenClassStudents));
     }
 
-    public void findHonorStudents() throws IOException {
-        List<Person> persons = dataLoader.loadData();
-
-        for (Person person : persons) {
-            classroomDataGroups.addPerson(person);
-            personAgeDataGroups.addPerson(person);
-            personNameDataGroup.addPerson(person);
-        }
-
+    public void findHonorStudents() {
         List<Person> honorStudents = new ArrayList<>();
         for (int age = 15; age <= 100; age++) {
             MyList<Person> studentsOver14 = personAgeDataGroups.getPersons(String.valueOf(age));
@@ -60,15 +49,7 @@ class StudentService {
         }
     }
 
-    public void searchStudentByLastName() throws IOException {
-        List<Person> persons = dataLoader.loadData();
-
-        for (Person person : persons) {
-            classroomDataGroups.addPerson(person);
-            personAgeDataGroups.addPerson(person);
-            personNameDataGroup.addPerson(person);
-        }
-
+    public void searchStudentByLastName() {
         try (Scanner scanner = new Scanner(System.in)) {
             System.out.println("\nВведите фамилию ученика для получения информации: ");
             String lastName = scanner.nextLine();

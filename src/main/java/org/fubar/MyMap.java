@@ -1,10 +1,11 @@
 package org.fubar;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 class MyMap<K, V> {
-    private List<MyEntry<K, V>> entries;
+    private final List<MyEntry<K, V>> entries;
 
     public MyMap() {
         entries = new ArrayList<>();
