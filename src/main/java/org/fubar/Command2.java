@@ -1,16 +1,27 @@
 package org.fubar;
 
-import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
 
-class Command2 implements Command {
-    private final StudentService studentService;
+public class Command2 implements Command {
+    private final DatabaseHelper dbhelp;
 
-    public Command2(StudentService studentService) {
-        this.studentService = studentService;
+    public Command2(DatabaseHelper dbhelp) {
+        this.dbhelp = dbhelp;
     }
 
     @Override
-    public void execute() throws IOException {
-        studentService.findHonorStudents();
+    public void execute() {
+        try {
+            List<HonorStudentDTO> excellentStudents = dbhelp.getHonorStudentsAfter14();
+            System.out.println("\nСписок отличников старше 14 лет:");
+            for (HonorStudentDTO o : excellentStudents){
+                System.out.println(o);
+            }
+        }
+        catch (SQLException e) {
+            System.out.println("\tОшибка при выполнении запроса: " + e.getMessage());
+        }
     }
 }
+
