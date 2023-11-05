@@ -1,6 +1,6 @@
-package org.fubar;
+package org.fubar.dto;
 
-public record AverageGradeByLastNameDTO(String family, String name, int groupId, double averageGrade) {
+public record StudentDTO(String family, String name, int groupId, double averageGrade) {
 
     @Override
     public String toString() {

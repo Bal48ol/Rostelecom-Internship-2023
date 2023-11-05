@@ -1,4 +1,7 @@
-package org.fubar;
+package org.fubar.command;
+
+import org.fubar.DatabaseHelper;
+import org.fubar.dto.StudentDTO;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -18,13 +21,13 @@ public class Command3 implements Command {
             Scanner scanner = new Scanner(System.in);
             String lastName = scanner.nextLine();
 
-            List<AverageGradeByLastNameDTO> studentInfoList = dbhelp.getAverageGradeByLastName(lastName);
+            List<StudentDTO> studentInfoList = dbhelp.getAverageGradeByLastName(lastName);
             if (studentInfoList.isEmpty()) {
                 System.out.println("Ученики с указанной фамилией не найдены.");
             }
             else {
                 System.out.println("\nИнформация об учениках с фамилией " + lastName + ":");
-                for (AverageGradeByLastNameDTO studentInfo : studentInfoList) {
+                for (StudentDTO studentInfo : studentInfoList) {
                     System.out.println(studentInfo);
                 }
             }

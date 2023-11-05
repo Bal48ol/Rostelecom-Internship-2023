@@ -1,8 +1,8 @@
-package org.fubar;
+package org.fubar.command;
 
 import java.io.IOException;
 import java.sql.SQLException;
 
-interface Command {
+public interface Command {
     void execute() throws IOException, SQLException;
 }

@@ -1,4 +1,7 @@
-package org.fubar;
+package org.fubar.command;
+
+import org.fubar.dto.AverageGradesDTO;
+import org.fubar.DatabaseHelper;
 
 import java.sql.SQLException;
 

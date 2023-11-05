@@ -1,4 +1,7 @@
-package org.fubar;
+package org.fubar.command;
+
+import org.fubar.DatabaseHelper;
+import org.fubar.dto.StudentDTO;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -13,9 +16,9 @@ public class Command2 implements Command {
     @Override
     public void execute() {
         try {
-            List<HonorStudentDTO> excellentStudents = dbhelp.getHonorStudentsAfter14();
+            List<StudentDTO> excellentStudents = dbhelp.getHonorStudentsAfter14();
             System.out.println("\nСписок отличников старше 14 лет:");
-            for (HonorStudentDTO o : excellentStudents){
+            for (StudentDTO o : excellentStudents){
                 System.out.println(o);
             }
         }

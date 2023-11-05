@@ -1,5 +1,8 @@
 package org.fubar;
 
+import org.fubar.dto.AverageGradesDTO;
+import org.fubar.dto.StudentDTO;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -63,8 +66,8 @@ public class DatabaseHelper {
         return null;
     }
 
-    public List<HonorStudentDTO> getHonorStudentsAfter14() throws SQLException {
-        List<HonorStudentDTO> honorStudents = null;
+    public List<StudentDTO> getHonorStudentsAfter14() throws SQLException {
+        List<StudentDTO> honorStudents = null;
         try {
             beginTransaction();
 
@@ -84,7 +87,7 @@ public class DatabaseHelper {
                     int groupId = resultSet.getInt(3);
                     double averageGrade = resultSet.getDouble(4);
 
-                    HonorStudentDTO student = new HonorStudentDTO(family, name, groupId, averageGrade);
+                    StudentDTO student = new StudentDTO(family, name, groupId, averageGrade);
                     honorStudents.add(student);
                 }
             }
@@ -98,8 +101,8 @@ public class DatabaseHelper {
     }
 
 
-    public List<AverageGradeByLastNameDTO> getAverageGradeByLastName(String lastName) throws SQLException {
-        List<AverageGradeByLastNameDTO> studentInfoList = null;
+    public List<StudentDTO> getAverageGradeByLastName(String lastName) throws SQLException {
+        List<StudentDTO> studentInfoList = null;
         try {
             beginTransaction();
 
@@ -120,7 +123,7 @@ public class DatabaseHelper {
                         int groupId = resultSet.getInt(3);
                         double averageGrade = resultSet.getDouble(4);
 
-                        AverageGradeByLastNameDTO studentInfo = new AverageGradeByLastNameDTO(family, name, groupId, averageGrade);
+                        StudentDTO studentInfo = new StudentDTO(family, name, groupId, averageGrade);
                         studentInfoList.add(studentInfo);
                     }
                 }
@@ -133,6 +136,82 @@ public class DatabaseHelper {
         }
         return studentInfoList;
     }
+
+    public List<StudentDTO> getAverageGradeByGroupId(int id) throws SQLException {
+        List<StudentDTO> studentInfoList = null;
+        try {
+            beginTransaction();
+
+            String query = "SELECT students.family, students.name, students.group_id, " +
+                    "(grades.physics + grades.mathematics + grades.rus + grades.literature + grades.geometry + grades.informatics) / 6.0 " +
+                    "FROM students INNER JOIN grades ON students.id = grades.student_id " +
+                    "WHERE students.group_id = ? " +
+                    "GROUP BY students.family, students.name, students.group_id, grades.physics, grades.mathematics, grades.rus, grades.literature, grades.geometry, grades.informatics";
+
+            studentInfoList = new ArrayList<>();
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement. setInt(1, id);
+
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        String family = resultSet.getString(1);
+                        String name = resultSet.getString(2);
+                        int groupId = resultSet.getInt(3);
+                        double averageGrade = resultSet.getDouble(4);
+
+                        StudentDTO studentInfo = new StudentDTO(family, name, groupId, averageGrade);
+                        studentInfoList.add(studentInfo);
+                    }
+                }
+            }
+
+            commitTransaction();
+        } catch (SQLException e) {
+            rollbackTransaction();
+            System.out.println(e.getMessage());
+        }
+        return studentInfoList;
+    }
+
+    public void updateStudentGrade(String lastName, String firstName, int groupId, String lesson, int newGrade) throws SQLException {
+        try {
+            beginTransaction();
+            // ученик существует?
+            String checkStudentQuery = "SELECT students.id FROM students WHERE students.family = ? AND students.name = ? AND students.group_id = ?";
+            int studentId;
+            try (PreparedStatement checkStatement = connection.prepareStatement(checkStudentQuery)) {
+                checkStatement.setString(1, lastName);
+                checkStatement.setString(2, firstName);
+                checkStatement.setInt(3, groupId);
+
+                try (ResultSet resultSet = checkStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        studentId = resultSet.getInt(1);
+                    }
+                    else {
+                        throw new SQLException("Ученик не найден");
+                    }
+                }
+            }
+            // обновление оценки ученика в определенном предмете
+            String updateGradeQuery = "UPDATE grades SET " + lesson + " = ? WHERE student_id = ?";
+            try (PreparedStatement updateStatement = connection.prepareStatement(updateGradeQuery)) {
+                updateStatement.setInt(1, newGrade);
+                updateStatement.setInt(2, studentId);
+                int rowsUpdated = updateStatement.executeUpdate();
+                if (rowsUpdated == 0) {
+                    return;
+                }
+            }
+
+            commitTransaction();
+        }
+        catch (SQLException e) {
+            rollbackTransaction();
+            System.out.println(e.getMessage() + " + опять ошибка");
+        }
+    }
+
 
     private void beginTransaction() throws SQLException {
         connection.setAutoCommit(false);
