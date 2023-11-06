@@ -1,5 +1,7 @@
 package org.fubar.servlet;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.fubar.DatabaseHelper;
 
 import javax.servlet.annotation.WebServlet;
@@ -9,8 +11,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
 
+@Api(value = "Students Grades")
 @WebServlet("/update/grade/")
 public class UpdateGradeServlet extends HttpServlet {
+    @ApiOperation(value = "Update Grade")
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             Class.forName("org.postgresql.Driver");
@@ -39,7 +43,7 @@ public class UpdateGradeServlet extends HttpServlet {
         try {
             dbHelp.connect();
             dbHelp.updateStudentGrade(lastName, firstName, groupId, lesson, newGrade);
-            response.getWriter().println("Оценка успешно обновлена: " + lastName + " " + firstName + " " + groupId + " " + lesson + " " + newGrade);
+            response.getWriter().println("Оценка успешно обновлена");
         }
         catch (SQLException e) {
             response.getWriter().println("Ошибка при обновлении оценки: " + e.getMessage());

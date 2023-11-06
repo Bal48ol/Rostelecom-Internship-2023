@@ -1,6 +1,7 @@
 package org.fubar.servlet;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.fubar.DatabaseHelper;
 import org.fubar.dto.StudentDTO;
 
@@ -13,13 +14,15 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-@Api(value = "Grade Management System")
+@Api(value = "Students Grades")
 @WebServlet(urlPatterns = {"/students/average_grades/group_id/*"})
 public class GetAverageGradesServlet extends HttpServlet {
+    @ApiOperation(value = "Get Average Grades by Group ID")
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
+        }
+        catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
         response.setCharacterEncoding("WINDOWS-1251");
