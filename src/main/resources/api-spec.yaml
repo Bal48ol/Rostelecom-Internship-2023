@@ -1,0 +1,112 @@
+openapi: 3.0.0
+info:
+  title: Students Grades
+  version: 1.1.0
+paths:
+  /average_grades/group_id/{groupId}:
+    get:
+      summary: Get Average Grades by Group ID
+      parameters:
+        - in: path
+          name: groupId
+          required: true
+          description: The ID of the group for which to retrieve average grades.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudentDTO'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              example: "Параметр groupId отсутствует"
+        422:
+          description: Unprocessable Entity
+          content:
+            application/json:
+              example: "Неверный формат groupId"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              example: "Internal Server Error message"
+
+  /update/grade/:
+    post:
+      summary: Update Grade
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                lastName:
+                  type: string
+                  description: The last name of the student.
+                firstName:
+                  type: string
+                  description: The first name of the student.
+                groupId:
+                  type: integer
+                  description: The ID of the group to which the student belongs.
+                lesson:
+                  type: string
+                  description: The lesson for which to update the grade.
+                newGrade:
+                  type: integer
+                  description: The new grade to set for the student.
+      responses:
+        200:
+          description: Successful update
+          content:
+            application/json:
+              example: "Оценка успешно обновлена"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              example: "Invalid request parameters"
+        422:
+          description: Unprocessable Entity
+          content:
+            application/json:
+              example: "Error updating grade: [error message]"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              example: "Internal Server Error message"
+
+components:
+  schemas:
+    StudentDTO:
+      type: object
+      properties:
+        family:
+          type: string
+          description: The family name of the student.
+        name:
+          type: string
+          description: The first name of the student.
+        groupId:
+          type: integer
+          description: The ID of the group to which the student belongs.
+        averageGrade:
+          type: number
+          format: double
+          description: The average grade of the student.
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/DAYOFTRAVEL69/StudentsGrades/1.1.0
+  - description: ЛокалХост
+    url: http://localhost:8080/

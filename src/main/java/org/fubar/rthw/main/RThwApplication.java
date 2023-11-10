@@ -1,4 +1,4 @@
-package org.fubar.rthw;
+package org.fubar.rthw.main;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,5 +8,4 @@ public class RThwApplication {
     public static void main(String[] args) {
         SpringApplication.run(RThwApplication.class, args);
     }
-
 }
