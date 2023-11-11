@@ -24,6 +24,85 @@ public class DatabaseHelper {
         }
     }
 
+    public void addStudent(String lastName, String firstName, int age, int groupId, HttpServletRequest request) throws SQLException {
+        String result;
+        try {
+            beginTransaction();
+
+            String selectMaxIdQuery = "SELECT MAX(id) FROM students";
+            int nextId;
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(selectMaxIdQuery)) {
+                if (resultSet.next()) {
+                    nextId = resultSet.getInt(1) + 1;
+                } else {
+                    nextId = 1;
+                }
+            }
+
+            String insertStudentQuery = "INSERT INTO students (id, family, name, age, group_id) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement insertStatement = connection.prepareStatement(insertStudentQuery)) {
+                insertStatement.setInt(1, nextId);
+                insertStatement.setString(2, lastName);
+                insertStatement.setString(3, firstName);
+                insertStatement.setInt(4, age);
+                insertStatement.setInt(5, groupId);
+                insertStatement.executeUpdate();
+            }
+
+            String insertGradesQuery = "INSERT INTO grades (id, student_id, physics, mathematics, rus, literature, geometry, informatics) VALUES (?, ?, 0, 0, 0, 0, 0, 0)";
+            try (PreparedStatement insertGradesStatement = connection.prepareStatement(insertGradesQuery)) {
+                insertGradesStatement.setInt(1, nextId);
+                insertGradesStatement.setInt(2, nextId);
+                insertGradesStatement.executeUpdate();
+            }
+
+            commitTransaction();
+            result = "Студент с ID " + nextId + " успешно добавлен.";
+        } catch (SQLException e) {
+            rollbackTransaction();
+            result = "Ошибка при добавлении студента: " + e.getMessage();
+            System.out.println(e.getMessage());
+        }
+
+        request.setAttribute("result", result);
+    }
+
+    public void deleteStudent(int studentId, HttpServletRequest request) throws SQLException {
+        String result;
+        try {
+            beginTransaction();
+
+            // Удаление строк из таблицы grades
+            String deleteGradesQuery = "DELETE FROM grades WHERE student_id = ?";
+            try (PreparedStatement deleteGradesStatement = connection.prepareStatement(deleteGradesQuery)) {
+                deleteGradesStatement.setInt(1, studentId);
+                deleteGradesStatement.executeUpdate();
+            }
+
+            // Удаление записи о студенте из таблицы students
+            String deleteStudentQuery = "DELETE FROM students WHERE id = ?";
+            try (PreparedStatement deleteStudentStatement = connection.prepareStatement(deleteStudentQuery)) {
+                deleteStudentStatement.setInt(1, studentId);
+                int rowsDeleted = deleteStudentStatement.executeUpdate();
+                if (rowsDeleted == 0) {
+                    result = "Студент с ID " + studentId + " не найден.";
+                } else {
+                    result = "Студент с ID " + studentId + " успешно удален.";
+                }
+            }
+
+            commitTransaction();
+        } catch (SQLException e) {
+            rollbackTransaction();
+            result = "Ошибка при удалении студента: " + e.getMessage();
+            System.out.println(e.getMessage());
+        }
+
+        request.setAttribute("result", result);
+    }
+
+
     public AverageGradesDTO getAverageGradesForSeniorClasses() throws SQLException {
         try {
             beginTransaction();

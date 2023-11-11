@@ -99,6 +99,47 @@ public class RThwController {
         }
     }
 
+    @PostMapping("/add/student")
+    public void addStudent(@RequestParam String lastName,
+                           @RequestParam String firstName,
+                           @RequestParam int age,
+                           @RequestParam int groupId,
+                           HttpServletRequest request,
+                           HttpServletResponse response) throws UnsupportedEncodingException {
+        response.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding("UTF-8");
+        try {
+            dbHelp = new DatabaseHelper();
+            dbHelp.connect();
+            dbHelp.addStudent(lastName, firstName, age, groupId, request);
+            dbHelp.disconnect();
+            String result = (String) request.getAttribute("result");
+            response.getWriter().write(result);
+        }
+        catch (SQLException | IOException e) {
+            throw new RuntimeException("Ошибка при добавлении студента: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/delete/student")
+    public void deleteStudent(@RequestParam int id,
+                           HttpServletRequest request,
+                           HttpServletResponse response) throws UnsupportedEncodingException {
+        response.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding("UTF-8");
+        try {
+            dbHelp = new DatabaseHelper();
+            dbHelp.connect();
+            dbHelp.deleteStudent(id, request);
+            dbHelp.disconnect();
+            String result = (String) request.getAttribute("result");
+            response.getWriter().write(result);
+        }
+        catch (SQLException | IOException e) {
+            throw new RuntimeException("Ошибка при удалении студента: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/update/grade")
     public void updateGrade(@RequestParam String lastName,
                             @RequestParam String firstName,
