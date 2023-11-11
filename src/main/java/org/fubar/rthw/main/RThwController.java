@@ -1,9 +1,14 @@
 package org.fubar.rthw.main;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.fubar.rthw.dto.AverageGradesDTO;
 import org.springframework.web.bind.annotation.*;
 import org.fubar.rthw.DatabaseHelper;
 import org.fubar.rthw.dto.StudentDTO;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -75,11 +80,11 @@ public class RThwController {
     }
 
     @GetMapping("/honor_students/age/{age}")
-    public String getHonorStudentsAfter(@PathVariable int age){
+    public String getHonorStudentsAfterAge(@PathVariable int age){
         try {
             dbHelp = new DatabaseHelper();
             dbHelp.connect();
-            List<StudentDTO> honorStudents = dbHelp.getHonorStudentsAfter(age);
+            List<StudentDTO> honorStudents = dbHelp.getHonorStudentsAfterAge(age);
             dbHelp.disconnect();
 
             StringBuilder sb = new StringBuilder();
@@ -95,20 +100,48 @@ public class RThwController {
     }
 
     @PostMapping("/update/grade")
-    public String updateGrade(@RequestParam String lastName,
-                              @RequestParam String firstName,
-                              @RequestParam int groupId,
-                              @RequestParam String lesson,
-                              @RequestParam int newGrade) {
+    public void updateGrade(@RequestParam String lastName,
+                            @RequestParam String firstName,
+                            @RequestParam int age,
+                            @RequestParam int groupId,
+                            @RequestParam String lesson,
+                            @RequestParam int newGrade,
+                            HttpServletRequest request,
+                            HttpServletResponse response) throws UnsupportedEncodingException {
+        response.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding("UTF-8");
         try {
             dbHelp = new DatabaseHelper();
             dbHelp.connect();
-            dbHelp.updateStudentGrade(lastName, firstName, groupId, lesson, newGrade);
+            dbHelp.updateStudentGrade(lastName, firstName, age, groupId, lesson, newGrade, request);
             dbHelp.disconnect();
-            return "Оценка успешно обновлена";
+            String result = (String) request.getAttribute("result");
+            response.getWriter().write(result);
         }
-        catch (SQLException e) {
+        catch (SQLException | IOException e) {
             throw new RuntimeException("Ошибка при обновлении оценки: " + e.getMessage());
         }
     }
+
+    @PostMapping("/update/grade/id")
+    public void updateGradeById(@RequestParam int id,
+                            @RequestParam String lesson,
+                            @RequestParam int newGrade,
+                            HttpServletRequest request,
+                            HttpServletResponse response) throws UnsupportedEncodingException {
+        response.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding("UTF-8");
+        try {
+            dbHelp = new DatabaseHelper();
+            dbHelp.connect();
+            dbHelp.updateStudentGradeById(id, lesson, newGrade, request);
+            dbHelp.disconnect();
+            String result = (String) request.getAttribute("result");
+            response.getWriter().write(result);
+        }
+        catch (SQLException | IOException e) {
+            throw new RuntimeException("Ошибка при обновлении оценки: " + e.getMessage());
+        }
+    }
+
 }

@@ -1,18 +1,12 @@
 package org.fubar.rthw;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.fubar.rthw.dto.AverageGradesDTO;
 import org.fubar.rthw.dto.StudentDTO;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
-// Класс DatabaseManager организован таким образом, что операции базы данных,
-// связанные с определенной бизнес-логикой, выполняются внутри одной транзакции.
-// Это позволяет обеспечить целостность данных и согласованность результатов операций.
-
-// Методы getAverageGradesForSeniorClasses, getHonorStudentsAfter14, getAverageGradeByLastName
-// используют Data Transfer Objects (DTO) для передачи данных между слоями приложения.
 
 public class DatabaseHelper {
     private Connection connection;
@@ -61,16 +55,16 @@ public class DatabaseHelper {
         return null;
     }
 
-    public List<StudentDTO> getHonorStudentsAfter(int age) throws SQLException {
+    public List<StudentDTO> getHonorStudentsAfterAge(int age) throws SQLException {
         List<StudentDTO> honorStudents = null;
         try {
             beginTransaction();
 
-            String query = "SELECT students.family, students.name, students.group_id, " +
+            String query = "SELECT students.family, students.name, students.age, students.group_id, " +
                     "(grades.physics + grades.mathematics + grades.rus + grades.literature + grades.geometry + grades.informatics) / 6.0 " +
                     "FROM students INNER JOIN grades ON students.id = grades.student_id " +
                     "WHERE students.age > " + age + " " +
-                    "GROUP BY students.family, students.name, students.group_id, grades.physics, grades.mathematics, grades.rus, grades.literature, grades.geometry, grades.informatics " +
+                    "GROUP BY students.family, students.name, students.age, students.group_id, grades.physics, grades.mathematics, grades.rus, grades.literature, grades.geometry, grades.informatics " +
                     "HAVING (grades.physics + grades.mathematics + grades.rus + grades.literature + grades.geometry + grades.informatics) / 6.0 = 5.0";
 
             honorStudents = new ArrayList<>();
@@ -92,11 +86,11 @@ public class DatabaseHelper {
         try {
             beginTransaction();
 
-            String query = "SELECT students.family, students.name, students.group_id, " +
+            String query = "SELECT students.family, students.name, students.age, students.group_id, " +
                     "(grades.physics + grades.mathematics + grades.rus + grades.literature + grades.geometry + grades.informatics) / 6.0 " +
                     "FROM students INNER JOIN grades ON students.id = grades.student_id " +
                     "WHERE students.family = ? " +
-                    "GROUP BY students.family, students.name, students.group_id, grades.physics, grades.mathematics, grades.rus, grades.literature, grades.geometry, grades.informatics";
+                    "GROUP BY students.family, students.name, students.age, students.group_id, grades.physics, grades.mathematics, grades.rus, grades.literature, grades.geometry, grades.informatics";
 
             studentInfoList = new ArrayList<>();
             try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -120,11 +114,11 @@ public class DatabaseHelper {
         try {
             beginTransaction();
 
-            String query = "SELECT students.family, students.name, students.group_id, " +
+            String query = "SELECT students.family, students.name, students.age, students.group_id, " +
                     "(grades.physics + grades.mathematics + grades.rus + grades.literature + grades.geometry + grades.informatics) / 6.0 " +
                     "FROM students INNER JOIN grades ON students.id = grades.student_id " +
                     "WHERE students.group_id = ? " +
-                    "GROUP BY students.family, students.name, students.group_id, grades.physics, grades.mathematics, grades.rus, grades.literature, grades.geometry, grades.informatics";
+                    "GROUP BY students.family, students.name, students.age, students.group_id, grades.physics, grades.mathematics, grades.rus, grades.literature, grades.geometry, grades.informatics";
 
             studentInfoList = new ArrayList<>();
             try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -143,34 +137,60 @@ public class DatabaseHelper {
         return studentInfoList;
     }
 
-    public void updateStudentGrade(String lastName, String firstName, int groupId, String lesson, int newGrade) throws SQLException {
+    public void updateStudentGrade(String lastName, String firstName, int age, int groupId, String lesson, int newGrade, HttpServletRequest request) throws SQLException {
         try {
             beginTransaction();
-            // ученик существует?
-            String checkStudentQuery = "SELECT students.id FROM students WHERE students.family = ? AND students.name = ? AND students.group_id = ?";
-            int studentId;
+
+            // Поиск учеников с полным совпадением по имени, фамилии, возрасту и классу
+            String checkStudentQuery = "SELECT id FROM students " +
+                    "WHERE family = ? AND name = ? AND age = ? AND group_id = ?";
+            List<Integer> matchingStudentIds = new ArrayList<>();
+
             try (PreparedStatement checkStatement = connection.prepareStatement(checkStudentQuery)) {
                 checkStatement.setString(1, lastName);
                 checkStatement.setString(2, firstName);
-                checkStatement.setInt(3, groupId);
+                checkStatement.setInt(3, age);
+                checkStatement.setInt(4, groupId);
 
                 try (ResultSet resultSet = checkStatement.executeQuery()) {
-                    if (resultSet.next()) {
-                        studentId = resultSet.getInt(1);
-                    }
-                    else {
-                        throw new SQLException("Ученик не найден");
+                    while (resultSet.next()) {
+                        int studentId = resultSet.getInt("id");
+                        matchingStudentIds.add(studentId);
                     }
                 }
             }
-            // обновление оценки ученика в определенном предмете
-            String updateGradeQuery = "UPDATE grades SET " + lesson + " = ? WHERE student_id = ?";
-            try (PreparedStatement updateStatement = connection.prepareStatement(updateGradeQuery)) {
-                updateStatement.setInt(1, newGrade);
-                updateStatement.setInt(2, studentId);
-                int rowsUpdated = updateStatement.executeUpdate();
-                if (rowsUpdated == 0) {
-                    return;
+
+            if (matchingStudentIds.size() == 1) {
+                // Если есть только один ученик с данными именем, фамилией, возрастом и классом,
+                // то заменяем оценку по указанному предмету
+                int studentId = matchingStudentIds.get(0);
+
+                String updateGradeQuery = "UPDATE grades SET " + lesson + " = ? WHERE student_id = ?";
+                try (PreparedStatement updateStatement = connection.prepareStatement(updateGradeQuery)) {
+                    updateStatement.setInt(1, newGrade);
+                    updateStatement.setInt(2, studentId);
+                    int rowsUpdated = updateStatement.executeUpdate();
+                    String result;
+                    if (rowsUpdated == 0) {
+                        result = "Оценка " + newGrade + " по предмету " + lesson + " не обновлена у " + lastName + ", " + firstName + ", " + age + ", " + groupId;
+                    }
+                    else {
+                        result = "Оценка " + newGrade + " по предмету " + lesson + " успешно обновлена у " + lastName + ", " + firstName + ", " + age + ", " + groupId;
+                    }
+                    request.setAttribute("result", result);
+                }
+            } else {
+                // Если есть полное совпадение по имени, фамилии, возрасту и классу,
+                // то возвращаем список id полностью совпадающих учеников
+                if (!matchingStudentIds.isEmpty()) {
+                    StringBuilder result = new StringBuilder("ID учеников с идентичными данными (" + lastName + ", " + firstName + ", " + age + ", " + groupId + "): ");
+                    for (int studentId : matchingStudentIds) {
+                        result.append("\n").append("ID: ").append(studentId);
+                    }
+                    result.append("\n").append("Используйте ссылку /update/grade/id");
+                    request.setAttribute("result", result.toString());
+                } else {
+                    throw new SQLException("Ученик не найден");
                 }
             }
 
@@ -178,7 +198,34 @@ public class DatabaseHelper {
         }
         catch (SQLException e) {
             rollbackTransaction();
-            System.out.println(e.getMessage() + " + опять ошибка");
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void updateStudentGradeById(int studentId, String lesson, int newGrade, HttpServletRequest request) throws SQLException {
+        try {
+            beginTransaction();
+
+            String updateGradeQuery = "UPDATE grades SET " + lesson + " = ? WHERE student_id = ?";
+            try (PreparedStatement updateStatement = connection.prepareStatement(updateGradeQuery)) {
+                updateStatement.setInt(1, newGrade);
+                updateStatement.setInt(2, studentId);
+                int rowsUpdated = updateStatement.executeUpdate();
+                String result;
+                if (rowsUpdated == 0) {
+                    result = "Оценка " + newGrade + " по предмету " + lesson + " не обновлена для ученика с ID " + studentId;
+                }
+                else {
+                    result = "Оценка " + newGrade + " по предмету " + lesson + " успешно обновлена для ученика с ID " + studentId;
+                }
+                request.setAttribute("result", result);
+            }
+
+            commitTransaction();
+        }
+        catch (SQLException e) {
+            rollbackTransaction();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -186,10 +233,11 @@ public class DatabaseHelper {
         while (resultSet.next()) {
             String family = resultSet.getString(1);
             String name = resultSet.getString(2);
-            int groupId = resultSet.getInt(3);
-            double averageGrade = resultSet.getDouble(4);
+            int age = resultSet.getInt(3);
+            int groupId = resultSet.getInt(4);
+            double averageGrade = resultSet.getDouble(5);
 
-            StudentDTO student = new StudentDTO(family, name, groupId, averageGrade);
+            StudentDTO student = new StudentDTO(family, name, age, groupId, averageGrade);
             honorStudents.add(student);
         }
     }
