@@ -102,6 +102,69 @@ public class DatabaseHelper {
         request.setAttribute("result", result);
     }
 
+    public String getStudentById(int studentId) throws SQLException {
+        StringBuilder result;
+        try {
+            beginTransaction();
+
+            // Получение данных о студенте из таблицы students
+            String getStudentQuery = "SELECT * FROM students WHERE id = ?";
+            try (PreparedStatement getStudentStatement = connection.prepareStatement(getStudentQuery)) {
+                getStudentStatement.setInt(1, studentId);
+                try (ResultSet studentResult = getStudentStatement.executeQuery()) {
+                    if (studentResult.next()) {
+                        String lastName = studentResult.getString("family");
+                        String firstName = studentResult.getString("name");
+                        int age = studentResult.getInt("age");
+                        int groupId = studentResult.getInt("group_id");
+
+                        // Получение данных об оценках студента из таблицы grades
+                        String getGradesQuery = "SELECT * FROM grades WHERE student_id = ?";
+                        try (PreparedStatement getGradesStatement = connection.prepareStatement(getGradesQuery)) {
+                            getGradesStatement.setInt(1, studentId);
+                            try (ResultSet gradesResult = getGradesStatement.executeQuery()) {
+                                List<Integer> subjects = new ArrayList<>();
+                                while (gradesResult.next()) {
+                                    int physics = gradesResult.getInt("physics");
+                                    int mathematics = gradesResult.getInt("mathematics");
+                                    int rus = gradesResult.getInt("rus");
+                                    int literature = gradesResult.getInt("literature");
+                                    int geometry = gradesResult.getInt("geometry");
+                                    int informatics = gradesResult.getInt("informatics");
+                                    subjects.add(physics);
+                                    subjects.add(mathematics);
+                                    subjects.add(rus);
+                                    subjects.add(literature);
+                                    subjects.add(geometry);
+                                    subjects.add(informatics);
+                                }
+
+                                // Формирование результата
+                                result = new StringBuilder("ID: " + studentId +
+                                        "<br>Фамилия: " + lastName +
+                                        "<br>Имя: " + firstName +
+                                        "<br>Возраст: " + age +
+                                        "<br>Класс: " + groupId +
+                                        "<br>Оценки: ");
+                                for (Integer subject : subjects) {
+                                    result.append(subject).append(", ").append("\n");
+                                }
+                            }
+                        }
+                    } else {
+                        result = new StringBuilder("Студент с ID " + studentId + " не найден.");
+                    }
+                }
+            }
+
+            commitTransaction();
+        } catch (SQLException e) {
+            rollbackTransaction();
+            result = new StringBuilder("Ошибка при получении данных о студенте: " + e.getMessage());
+        }
+        return result.toString();
+    }
+
 
     public AverageGradesDTO getAverageGradesForSeniorClasses() throws SQLException {
         try {

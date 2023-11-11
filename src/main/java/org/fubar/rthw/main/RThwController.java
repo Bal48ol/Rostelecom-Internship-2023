@@ -21,6 +21,20 @@ public class RThwController {
         return "It's Home Work №5!";
     }
 
+    @GetMapping("/get/student/{id}")
+    public String getStudent(@PathVariable int id){
+        try {
+            dbHelp = new DatabaseHelper();
+            dbHelp.connect();
+            String student = dbHelp.getStudentById(id);
+            dbHelp.disconnect();
+            return student;
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @GetMapping("/average_grades_for_senior_classes")
     public AverageGradesDTO getAverageGradesForSeniorClasses(){
         try {
