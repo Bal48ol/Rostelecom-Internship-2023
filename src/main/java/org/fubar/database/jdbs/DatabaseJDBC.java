@@ -1,14 +1,14 @@
-package org.fubar.rthw;
+package org.fubar.database.jdbs;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.fubar.rthw.dto.AverageGradesDTO;
-import org.fubar.rthw.dto.StudentDTO;
+import org.fubar.dto.AverageGradesDTO;
+import org.fubar.dto.StudentDTO;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DatabaseHelper {
+public class DatabaseJDBC {
     private Connection connection;
 
     public void connect() throws SQLException {
@@ -398,4 +398,3 @@ public class DatabaseHelper {
         connection.setAutoCommit(true);
     }
 }
-

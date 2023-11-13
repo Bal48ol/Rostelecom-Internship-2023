@@ -1,11 +1,11 @@
-package org.fubar.rthw.main;
+package org.fubar;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RThwApplication {
+public class Application {
     public static void main(String[] args) {
-        SpringApplication.run(RThwApplication.class, args);
+        SpringApplication.run(Application.class, args);
     }
 }

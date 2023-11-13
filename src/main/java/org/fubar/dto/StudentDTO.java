@@ -1,4 +1,4 @@
-package org.fubar.rthw.dto;
+package org.fubar.dto;
 
 public record StudentDTO(String family, String name, int age, int groupId, double averageGrade) {
 

@@ -1,10 +1,10 @@
-package org.fubar.rthw;
+package org.fubar;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class RThwApplicationTests {
+class ApplicationTests {
 
     @Test
     void contextLoads() {

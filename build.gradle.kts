@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.fubar"
-version = "0.0.1-SNAPSHOT"
+version = "2.0.0-JPA"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -22,8 +22,10 @@ repositories {
 }
 
 dependencies {
-    // implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation ("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")
