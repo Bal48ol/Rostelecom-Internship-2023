@@ -1,112 +1,182 @@
 openapi: 3.0.0
 info:
-  title: Students Grades
-  version: 1.1.0
+  title: Student's Grades API
+  version: 2.0.0
 paths:
-  /average_grades/group_id/{groupId}:
+  /get/student/grades/{id}:
     get:
-      summary: Get Average Grades by Group ID
+      summary: Получение данных студента по ID
       parameters:
-        - in: path
-          name: groupId
+        - name: id
+          in: path
+          description: ID студента
           required: true
-          description: The ID of the group for which to retrieve average grades.
           schema:
             type: integer
       responses:
-        200:
-          description: Successful response
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '404':
+          description: Студент не найден
+  /get/average_grades/{groupId}:
+    get:
+      summary: Получение средних оценок каждого ученика в указанном классе
+      parameters:
+        - name: groupId
+          in: path
+          description: ID класса
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/StudentDTO'
-        400:
-          description: Bad request
-          content:
-            application/json:
-              example: "Параметр groupId отсутствует"
-        422:
-          description: Unprocessable Entity
-          content:
-            application/json:
-              example: "Неверный формат groupId"
-        500:
-          description: Internal Server Error
-          content:
-            application/json:
-              example: "Internal Server Error message"
-
-  /update/grade/:
+        '404':
+          description: Ученики не найдены
+  /add/student:
     post:
-      summary: Update Grade
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                lastName:
-                  type: string
-                  description: The last name of the student.
-                firstName:
-                  type: string
-                  description: The first name of the student.
-                groupId:
-                  type: integer
-                  description: The ID of the group to which the student belongs.
-                lesson:
-                  type: string
-                  description: The lesson for which to update the grade.
-                newGrade:
-                  type: integer
-                  description: The new grade to set for the student.
+      summary: Добавление студента
+      parameters:
+        - name: lastName
+          in: query
+          description: Фамилия студента
+          required: true
+          schema:
+            type: string
+        - name: firstName
+          in: query
+          description: Имя студента
+          required: true
+          schema:
+            type: string
+        - name: age
+          in: query
+          description: Возраст студента
+          required: true
+          schema:
+            type: integer
+        - name: groupId
+          in: query
+          description: ID класса студента
+          required: true
+          schema:
+            type: integer
       responses:
-        200:
-          description: Successful update
+        '200':
+          description: Успешный запрос
           content:
             application/json:
-              example: "Оценка успешно обновлена"
-        400:
-          description: Bad request
+              schema:
+                $ref: '#/components/schemas/Student'
+  /delete/student/{id}:
+    delete:
+      summary: Удаление студента по ID
+      parameters:
+        - name: id
+          in: path
+          description: ID студента
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
           content:
             application/json:
-              example: "Invalid request parameters"
-        422:
-          description: Unprocessable Entity
+              schema:
+                type: string
+        '404':
+          description: Студент не найден
+  /update/grade/{studentId}/{subject}:
+    put:
+      summary: Редактирование оценки студента по определенному предмету
+      parameters:
+        - name: studentId
+          in: path
+          description: ID студента
+          required: true
+          schema:
+            type: integer
+        - name: subject
+          in: path
+          description: Предмет
+          required: true
+          schema:
+            type: string
+        - name: newGrade
+          in: query
+          description: Новая оценка
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
           content:
             application/json:
-              example: "Error updating grade: [error message]"
-        500:
-          description: Internal Server Error
-          content:
-            application/json:
-              example: "Internal Server Error message"
-
+              schema:
+                type: string
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Студент не найден
 components:
   schemas:
+    Grade:
+      type: object
+      properties:
+        id:
+          type: integer
+        student:
+          $ref: '#/components/schemas/Student'
+        physics:
+          type: integer
+        mathematics:
+          type: integer
+        rus:
+          type: integer
+        literature:
+          type: integer
+        geometry:
+          type: integer
+        informatics:
+          type: integer
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+        family:
+          type: string
+        name:
+          type: string
+        age:
+          type: integer
+        groupId:
+          type: integer
     StudentDTO:
       type: object
       properties:
         family:
           type: string
-          description: The family name of the student.
         name:
           type: string
-          description: The first name of the student.
+        age:
+          type: integer
         groupId:
           type: integer
-          description: The ID of the group to which the student belongs.
         averageGrade:
           type: number
-          format: double
-          description: The average grade of the student.
-
 servers:
-  # Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/DAYOFTRAVEL69/StudentsGrades/1.1.0
   - description: ЛокалХост
     url: http://localhost:8080/
