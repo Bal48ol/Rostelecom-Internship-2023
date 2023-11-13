@@ -1,9 +1,11 @@
 package org.fubar.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.fubar.database.jpa.entities.Grade;
 import org.fubar.database.jpa.entities.Student;
 import org.fubar.database.jpa.repositories.GradeRepository;
 import org.fubar.database.jpa.repositories.StudentRepository;
+import org.fubar.dto.GradesDTO;
 import org.fubar.dto.StudentDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 public class Controller {
     private final StudentRepository studentRepository;
@@ -28,12 +31,16 @@ public class Controller {
     // Получение данных студента по id
     @Transactional
     @GetMapping("/get/student/grades/{id}")
-    public ResponseEntity<Grade> getStudentGradesById(@PathVariable Integer id) {
-        Optional<Grade> gradeOptional = gradeRepository.findByStudentId(id);
+    public ResponseEntity<StudentDTO> getStudentGradesById(@PathVariable Integer id) {
+        Optional<Student> gradeOptional = studentRepository.findById(id);
         if (gradeOptional.isPresent()) {
-            Grade info = gradeOptional.get();
-            return ResponseEntity.ok(info);
+            Student student = gradeOptional.get();
+            StudentDTO studentDTO = new StudentDTO(student.getId(), student.getFamily(), student.getName(),
+                    student.getAge(), student.getGroupId(), null);
+            log.info("Получение данных студента по id: Успешно! " + studentDTO);
+            return ResponseEntity.ok(studentDTO);
         }
+        log.info("Неверный id студента");
         return ResponseEntity.notFound().build();
     }
 
@@ -52,6 +59,7 @@ public class Controller {
         List<StudentDTO> studentAverageGrades = students.stream()
                 .filter(student -> averageGradesMap.containsKey(student.getId()))
                 .map(student -> new StudentDTO(
+                        student.getId(),
                         student.getFamily(),
                         student.getName(),
                         student.getAge(),
@@ -61,19 +69,24 @@ public class Controller {
                 .collect(Collectors.toList());
 
         if (!studentAverageGrades.isEmpty()) {
+            log.info("Получение средних оценок каждого ученика в указанном классе: Успешно! Чекай постман");
             return ResponseEntity.ok(studentAverageGrades);
         }
+        log.info("Такого класса нет");
         return ResponseEntity.notFound().build();
     }
 
     // Добавление студента (оценки по умолчанию 0)
     @Transactional
     @PostMapping("/add/student")
-    public ResponseEntity<Student> addStudent(@RequestParam String lastName,
+    public ResponseEntity<StudentDTO> addStudent(@RequestParam String lastName,
                                               @RequestParam String firstName,
                                               @RequestParam int age,
                                               @RequestParam int groupId) {
         Student student = new Student();
+        if (studentRepository.count() == 0) {
+            student.setId(1);
+        }
         student.setFamily(lastName);
         student.setName(firstName);
         student.setAge(age);
@@ -91,7 +104,10 @@ public class Controller {
         grade.setInformatics(0);
         gradeRepository.save(grade);
 
-        return ResponseEntity.ok(savedStudent);
+        StudentDTO studentDTO = new StudentDTO(student.getId(), student.getFamily(), student.getName(), student.getAge(), student.getGroupId(), null);
+
+        log.info("Добавление студента (оценки по умолчанию 0): Успешно! " + studentDTO);
+        return ResponseEntity.ok(studentDTO);
     }
 
     // Удаление студента по id
@@ -102,15 +118,16 @@ public class Controller {
         if (studentOptional.isPresent()) {
             gradeRepository.deleteByStudentId(id);
             studentRepository.deleteById(id);
+            log.info("Удаление студента по id: Успешно! Студент " + id + " удалён");
             return ResponseEntity.ok("Студент " + id + " удалён");
         }
+        log.info("Неудачное удаление студента");
         return ResponseEntity.notFound().build();
     }
 
-
     // Редактирование оценки студента по определенному предмету
     @PutMapping("/update/grade/{studentId}/{subject}")
-    public ResponseEntity<String> updateGrade(@PathVariable Integer studentId, @PathVariable String subject, @RequestParam Integer newGrade) {
+    public ResponseEntity<GradesDTO> updateGrade(@PathVariable Integer studentId, @PathVariable String subject, @RequestParam Integer newGrade) {
         Optional<Grade> gradeOptional = gradeRepository.findByStudentId(studentId);
         if (gradeOptional.isPresent()) {
             Grade grade = gradeOptional.get();
@@ -134,11 +151,16 @@ public class Controller {
                     grade.setInformatics(newGrade);
                     break;
                 default:
-                    return ResponseEntity.badRequest().body("Неизвестный предмет");
+                    return ResponseEntity.notFound().build();
             }
             gradeRepository.save(grade);
-            return ResponseEntity.ok("Оценка по предмету " + subject + " успешно изменена");
+            GradesDTO gradesDTO = new GradesDTO(grade.getPhysics(), grade.getMathematics(), grade.getRus(),
+                    grade.getLiterature(), grade.getGeometry(), grade.getInformatics());
+
+            log.info("Редактирование оценки студента по определенному предмету: Успешно! Оценка по предмету " + subject + " изменена");
+            return ResponseEntity.ok(gradesDTO);
         }
+        log.info("Неудачное редактирование оценки");
         return ResponseEntity.notFound().build();
     }
 

@@ -2,6 +2,7 @@ package org.fubar.database.jdbs;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.fubar.dto.AverageGradesDTO;
+import org.fubar.dto.GradesDTO;
 import org.fubar.dto.StudentDTO;
 
 import java.sql.*;
@@ -373,13 +374,14 @@ public class DatabaseJDBC {
 
     private void resNext(List<StudentDTO> honorStudents, ResultSet resultSet) throws SQLException {
         while (resultSet.next()) {
-            String family = resultSet.getString(1);
-            String name = resultSet.getString(2);
-            int age = resultSet.getInt(3);
-            int groupId = resultSet.getInt(4);
-            double averageGrade = resultSet.getDouble(5);
+            int id = resultSet.getInt(1);
+            String family = resultSet.getString(2);
+            String name = resultSet.getString(3);
+            int age = resultSet.getInt(4);
+            int groupId = resultSet.getInt(5);
+            double averageGrade = resultSet.getDouble(6);
 
-            StudentDTO student = new StudentDTO(family, name, age, groupId, averageGrade);
+            StudentDTO student = new StudentDTO(id, family, name, age, groupId, averageGrade);
             honorStudents.add(student);
         }
     }

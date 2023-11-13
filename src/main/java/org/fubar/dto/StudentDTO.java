@@ -1,9 +1,9 @@
 package org.fubar.dto;
 
-public record StudentDTO(String family, String name, int age, int groupId, double averageGrade) {
+public record StudentDTO(int id, String family, String name, int age, int groupId, Double averageGrade) {
 
     @Override
     public String toString() {
-        return "Фамилия: " + family + ", Имя: " + name + ", Возраст: " + age + ", Класс: " + groupId + ", Средняя оценка: " + averageGrade;
+        return "ID: " + id + ", Фамилия: " + family + ", Имя: " + name + ", Возраст: " + age + ", Класс: " + groupId + ", Средняя оценка: " + averageGrade;
     }
 }
