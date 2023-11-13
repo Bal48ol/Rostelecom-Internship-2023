@@ -1,7 +1,7 @@
 package org.fubar.controller;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.fubar.database.jpa.entities.Grade;
 import org.fubar.database.jpa.entities.Student;
@@ -18,8 +18,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Api
 @Slf4j
+@Tag(name = "Student's grades")
 @RestController
 public class Controller {
     private final StudentRepository studentRepository;
@@ -33,7 +33,7 @@ public class Controller {
 
     @Transactional
     @GetMapping("/get/student/{id}")
-    @ApiOperation("Получение данных студента по id")
+    @Operation(summary = "Получение данных студента по id")
     public ResponseEntity<StudentDTO> getStudentById(@PathVariable Integer id) {
         Optional<Student> studentOptional = studentRepository.findById(id);
         if (studentOptional.isPresent()) {
@@ -55,7 +55,7 @@ public class Controller {
 
     @Transactional
     @GetMapping("/get/grades/{id}")
-    @ApiOperation("Получение оценок студента по id")
+    @Operation(summary = "Получение оценок студента по id")
     public ResponseEntity<GradesDTO> getGradesById(@PathVariable Integer id) {
         Optional<Grade> gradeOptional = gradeRepository.findByStudentId(id);
         if (gradeOptional.isPresent()) {
@@ -71,7 +71,7 @@ public class Controller {
 
     @Transactional
     @GetMapping("/get/average_grades/{groupId}")
-    @ApiOperation("Получение средних оценок каждого ученика в указанном классе")
+    @Operation(summary = "Получение средних оценок каждого ученика в указанном классе")
     public ResponseEntity<List<StudentDTO>> getGroupIdAverageGrades(@PathVariable Integer groupId) {
         List<Student> students = studentRepository.findByGroupId(groupId);
         List<Integer> studentIds = students.stream().map(Student::getId).collect(Collectors.toList());
@@ -103,7 +103,7 @@ public class Controller {
 
     @Transactional
     @PostMapping("/add/student")
-    @ApiOperation("Добавление студента (оценки по умолчанию 0)")
+    @Operation(summary = "Добавление студента (оценки по умолчанию 0)")
     public ResponseEntity<StudentDTO> addStudent(@RequestParam String lastName,
                                               @RequestParam String firstName,
                                               @RequestParam int age,
@@ -139,7 +139,7 @@ public class Controller {
 
     @Transactional
     @DeleteMapping("/delete/student/{id}")
-    @ApiOperation("Удаление студента по id")
+    @Operation(summary = "Удаление студента по id")
     public ResponseEntity<String> deleteStudent(@PathVariable Integer id) {
         Optional<Student> studentOptional = studentRepository.findById(id);
         if (studentOptional.isPresent()) {
@@ -154,7 +154,7 @@ public class Controller {
 
     @Transactional
     @PutMapping("/update/grade/{studentId}/{subject}")
-    @ApiOperation("Редактирование оценки студента по определенному предмету")
+    @Operation(summary = "Редактирование оценки студента по определенному предмету")
     public ResponseEntity<GradesDTO> updateGrade(@PathVariable Integer studentId, @PathVariable String subject, @RequestParam Integer newGrade) {
         Optional<Grade> gradeOptional = gradeRepository.findByStudentId(studentId);
         if (gradeOptional.isPresent()) {
