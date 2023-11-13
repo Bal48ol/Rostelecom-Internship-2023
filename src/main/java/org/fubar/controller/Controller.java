@@ -1,5 +1,7 @@
 package org.fubar.controller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.fubar.database.jpa.entities.Grade;
 import org.fubar.database.jpa.entities.Student;
@@ -16,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Api
 @Slf4j
 @RestController
 public class Controller {
@@ -28,25 +31,47 @@ public class Controller {
         this.gradeRepository = gradeRepository;
     }
 
-    // Получение данных студента по id
     @Transactional
-    @GetMapping("/get/student/grades/{id}")
-    public ResponseEntity<StudentDTO> getStudentGradesById(@PathVariable Integer id) {
-        Optional<Student> gradeOptional = studentRepository.findById(id);
-        if (gradeOptional.isPresent()) {
-            Student student = gradeOptional.get();
-            StudentDTO studentDTO = new StudentDTO(student.getId(), student.getFamily(), student.getName(),
-                    student.getAge(), student.getGroupId(), null);
-            log.info("Получение данных студента по id: Успешно! " + studentDTO);
-            return ResponseEntity.ok(studentDTO);
+    @GetMapping("/get/student/{id}")
+    @ApiOperation("Получение данных студента по id")
+    public ResponseEntity<StudentDTO> getStudentById(@PathVariable Integer id) {
+        Optional<Student> studentOptional = studentRepository.findById(id);
+        if (studentOptional.isPresent()) {
+            Student student = studentOptional.get();
+            Optional<Grade> gradeOptional = gradeRepository.findById(id);
+            if (gradeOptional.isPresent()) {
+                Grade grade = gradeOptional.get();
+                double averageGrade = calculateAverageGrade(grade);
+                StudentDTO studentDTO = new StudentDTO(student.getId(), student.getFamily(), student.getName(),
+                        student.getAge(), student.getGroupId(), averageGrade);
+
+                log.info("Получение данных студента по id: Успешно! " + studentDTO);
+                return ResponseEntity.ok(studentDTO);
+            }
         }
         log.info("Неверный id студента");
         return ResponseEntity.notFound().build();
     }
 
-    // Получение средних оценок каждого ученика в указанном классе
+    @Transactional
+    @GetMapping("/get/grades/{id}")
+    @ApiOperation("Получение оценок студента по id")
+    public ResponseEntity<GradesDTO> getGradesById(@PathVariable Integer id) {
+        Optional<Grade> gradeOptional = gradeRepository.findByStudentId(id);
+        if (gradeOptional.isPresent()) {
+            Grade grade = gradeOptional.get();
+            GradesDTO gradesDTO = new GradesDTO(grade.getPhysics(), grade.getMathematics(), grade.getRus(),
+                    grade.getLiterature(), grade.getGeometry(), grade.getInformatics());
+            log.info("Получение данных студента по id: Успешно! " + gradesDTO);
+            return ResponseEntity.ok(gradesDTO);
+        }
+        log.info("Неверный id студента");
+        return ResponseEntity.notFound().build();
+    }
+
     @Transactional
     @GetMapping("/get/average_grades/{groupId}")
+    @ApiOperation("Получение средних оценок каждого ученика в указанном классе")
     public ResponseEntity<List<StudentDTO>> getGroupIdAverageGrades(@PathVariable Integer groupId) {
         List<Student> students = studentRepository.findByGroupId(groupId);
         List<Integer> studentIds = students.stream().map(Student::getId).collect(Collectors.toList());
@@ -76,9 +101,9 @@ public class Controller {
         return ResponseEntity.notFound().build();
     }
 
-    // Добавление студента (оценки по умолчанию 0)
     @Transactional
     @PostMapping("/add/student")
+    @ApiOperation("Добавление студента (оценки по умолчанию 0)")
     public ResponseEntity<StudentDTO> addStudent(@RequestParam String lastName,
                                               @RequestParam String firstName,
                                               @RequestParam int age,
@@ -104,15 +129,17 @@ public class Controller {
         grade.setInformatics(0);
         gradeRepository.save(grade);
 
-        StudentDTO studentDTO = new StudentDTO(student.getId(), student.getFamily(), student.getName(), student.getAge(), student.getGroupId(), null);
+        double averageGrade = calculateAverageGrade(grade);
+        StudentDTO studentDTO = new StudentDTO(student.getId(), student.getFamily(), student.getName(),
+                student.getAge(), student.getGroupId(), averageGrade);
 
         log.info("Добавление студента (оценки по умолчанию 0): Успешно! " + studentDTO);
         return ResponseEntity.ok(studentDTO);
     }
 
-    // Удаление студента по id
     @Transactional
     @DeleteMapping("/delete/student/{id}")
+    @ApiOperation("Удаление студента по id")
     public ResponseEntity<String> deleteStudent(@PathVariable Integer id) {
         Optional<Student> studentOptional = studentRepository.findById(id);
         if (studentOptional.isPresent()) {
@@ -125,8 +152,9 @@ public class Controller {
         return ResponseEntity.notFound().build();
     }
 
-    // Редактирование оценки студента по определенному предмету
+    @Transactional
     @PutMapping("/update/grade/{studentId}/{subject}")
+    @ApiOperation("Редактирование оценки студента по определенному предмету")
     public ResponseEntity<GradesDTO> updateGrade(@PathVariable Integer studentId, @PathVariable String subject, @RequestParam Integer newGrade) {
         Optional<Grade> gradeOptional = gradeRepository.findByStudentId(studentId);
         if (gradeOptional.isPresent()) {
@@ -164,7 +192,8 @@ public class Controller {
         return ResponseEntity.notFound().build();
     }
 
-    private double calculateAverageGrade(Grade grade) {
+    @Transactional
+    public double calculateAverageGrade(Grade grade) {
         int totalGrades = 6;
         int sumGrades = grade.getGeometry() + grade.getInformatics() + grade.getLiterature() +
                 grade.getMathematics() + grade.getPhysics() + grade.getRus();

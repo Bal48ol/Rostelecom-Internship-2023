@@ -13,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.times;
@@ -38,7 +37,7 @@ class ControllerTests {
     private GradeRepository gradeRepository;
 
     @Test
-    void testGetStudentGradesById() {
+    void testGetStudentById() {
         int studentId = 1;
         Student student = new Student();
         student.setId(studentId);
@@ -47,8 +46,17 @@ class ControllerTests {
         student.setAge(20);
         student.setGroupId(1);
 
+        Grade grade = new Grade();
+        grade.setPhysics(3);
+        grade.setMathematics(4);
+        grade.setRus(3);
+        grade.setLiterature(2);
+        grade.setGeometry(5);
+        grade.setInformatics(5);
+
         when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
-        ResponseEntity<StudentDTO> response = controller.getStudentGradesById(studentId);
+        when(gradeRepository.findById(studentId)).thenReturn(Optional.of(grade));
+        ResponseEntity<StudentDTO> response = controller.getStudentById(studentId);
 
         // Проверка результата
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -60,10 +68,41 @@ class ControllerTests {
         assertEquals(student.getName(), studentDTO.name());
         assertEquals(student.getAge(), studentDTO.age());
         assertEquals(student.getGroupId(), studentDTO.groupId());
-        assertNull(studentDTO.averageGrade());
+        assertEquals(3.66, studentDTO.averageGrade(), 0.01);
 
         // Проверка вызова методов мок-репозитория
         verify(studentRepository, times(1)).findById(studentId);
+        verify(gradeRepository, times(1)).findById(studentId);
+    }
+
+    @Test
+    void testGetGradesById() {
+        int studentId = 1;
+        Grade grade = new Grade();
+        grade.setPhysics(3);
+        grade.setMathematics(4);
+        grade.setRus(5);
+        grade.setLiterature(4);
+        grade.setGeometry(3);
+        grade.setInformatics(2);
+
+        when(gradeRepository.findByStudentId(studentId)).thenReturn(Optional.of(grade));
+        ResponseEntity<GradesDTO> response = controller.getGradesById(studentId);
+
+        // Проверка результата
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        GradesDTO gradesDTO = response.getBody();
+        assertEquals(grade.getPhysics(), gradesDTO.physics());
+        assertEquals(grade.getMathematics(), gradesDTO.mathematics());
+        assertEquals(grade.getRus(), gradesDTO.rus());
+        assertEquals(grade.getLiterature(), gradesDTO.literature());
+        assertEquals(grade.getGeometry(), gradesDTO.geometry());
+        assertEquals(grade.getInformatics(), gradesDTO.informatics());
+
+        // Проверка вызова методов мок-репозитория
+        verify(gradeRepository, times(1)).findByStudentId(studentId);
     }
 
     @Test
@@ -151,6 +190,14 @@ class ControllerTests {
         student.setAge(age);
         student.setGroupId(groupId);
 
+        Grade grade = new Grade();
+        grade.setPhysics(0);
+        grade.setMathematics(0);
+        grade.setRus(0);
+        grade.setLiterature(0);
+        grade.setGeometry(0);
+        grade.setInformatics(0);
+
         when(studentRepository.save(any(Student.class))).thenReturn(student);
         ResponseEntity<StudentDTO> response = controller.addStudent(lastName, firstName, age, groupId);
 
@@ -164,7 +211,7 @@ class ControllerTests {
         assertEquals(student.getName(), studentDTO.name());
         assertEquals(student.getAge(), studentDTO.age());
         assertEquals(student.getGroupId(), studentDTO.groupId());
-        assertNull(studentDTO.averageGrade());
+        assertEquals(0.0, studentDTO.averageGrade(), 0.01);
 
         // Проверка вызова методов мок-репозитория
         verify(studentRepository, times(1)).save(any(Student.class));
