@@ -21,7 +21,6 @@ public class Controller {
     private final StudentService studentService;
     private final GradeService gradeService;
 
-    @Transactional
     @GetMapping("/get/student/{id}")
     @Operation(summary = "Получение данных студента по id")
     public ResponseEntity<StudentDTO> getStudentById(@PathVariable Integer id) {
@@ -31,7 +30,6 @@ public class Controller {
                 : ResponseEntity.notFound().build();
     }
 
-    @Transactional
     @GetMapping("/get/grades/{id}")
     @Operation(summary = "Получение оценок студента по id")
     public ResponseEntity<GradesDTO> getGradesById(@PathVariable Integer id) {
@@ -41,7 +39,6 @@ public class Controller {
                 : ResponseEntity.notFound().build();
     }
 
-    @Transactional
     @GetMapping("/get/average_grades/{groupId}")
     @Operation(summary = "Получение средних оценок каждого ученика в указанном классе")
     public ResponseEntity<List<StudentDTO>> getGroupIdAverageGrades(@PathVariable Integer groupId) {
@@ -51,7 +48,6 @@ public class Controller {
                 : ResponseEntity.notFound().build();
     }
 
-    @Transactional
     @PostMapping("/add/student")
     @Operation(summary = "Добавление студента (оценки по умолчанию 0)")
     public ResponseEntity<StudentDTO> addStudent(@RequestParam String lastName,
@@ -62,7 +58,6 @@ public class Controller {
         return ResponseEntity.ok(studentDTO);
     }
 
-    @Transactional
     @DeleteMapping("/delete/student/{id}")
     @Operation(summary = "Удаление студента по id")
     public ResponseEntity<String> deleteStudent(@PathVariable Integer id) {
@@ -70,7 +65,6 @@ public class Controller {
         return ResponseEntity.ok(result);
     }
 
-    @Transactional
     @PutMapping("/update/grade/{studentId}/{subject}")
     @Operation(summary = "Редактирование оценки студента по определенному предмету")
     public ResponseEntity<GradesDTO> updateGrade(@PathVariable Integer studentId,

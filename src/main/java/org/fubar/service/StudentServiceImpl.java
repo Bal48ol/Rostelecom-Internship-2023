@@ -8,6 +8,7 @@ import org.fubar.jpa.entities.Student;
 import org.fubar.jpa.repositories.StudentRepository;
 import org.fubar.jpa.repositories.GradeRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,7 @@ public class StudentServiceImpl implements StudentService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public StudentDTO addStudent(String lastName, String firstName, int age, int groupId) {
         Student student = new Student();
@@ -78,6 +80,7 @@ public class StudentServiceImpl implements StudentService {
                 student.getAge(), student.getGroupId(), averageGrade);
     }
 
+    @Transactional
     @Override
     public String deleteStudent(Integer id) {
         Optional<Student> studentOptional = studentRepository.findById(id);

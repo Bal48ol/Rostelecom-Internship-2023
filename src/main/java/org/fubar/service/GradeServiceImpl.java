@@ -5,6 +5,7 @@ import org.fubar.dto.GradesDTO;
 import org.fubar.jpa.entities.Grade;
 import org.fubar.jpa.repositories.GradeRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -19,6 +20,7 @@ public class GradeServiceImpl implements GradeService {
                 .orElse(null);
     }
 
+    @Transactional
     @Override
     public GradesDTO updateGrade(Integer studentId, String subject, Integer newGrade) {
         return gradeRepository.findByStudentId(studentId)
