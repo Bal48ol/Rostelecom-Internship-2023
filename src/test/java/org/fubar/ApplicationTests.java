@@ -1,10 +1,10 @@
 package org.fubar;
 
 import org.fubar.controller.Controller;
-import org.fubar.database.jpa.entities.Grade;
-import org.fubar.database.jpa.entities.Student;
-import org.fubar.database.jpa.repositories.GradeRepository;
-import org.fubar.database.jpa.repositories.StudentRepository;
+import org.fubar.jpa.entities.Grade;
+import org.fubar.jpa.entities.Student;
+import org.fubar.jpa.repositories.GradeRepository;
+import org.fubar.jpa.repositories.StudentRepository;
 import org.fubar.dto.GradesDTO;
 import org.fubar.dto.StudentDTO;
 import org.junit.jupiter.api.Test;
@@ -184,7 +184,7 @@ class ControllerTests {
         int groupId = 1;
 
         Student student = new Student();
-        student.setId(1);
+
         student.setFamily(lastName);
         student.setName(firstName);
         student.setAge(age);

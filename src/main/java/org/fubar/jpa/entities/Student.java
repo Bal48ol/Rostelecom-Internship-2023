@@ -1,4 +1,4 @@
-package org.fubar.database.jpa.entities;
+package org.fubar.jpa.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
