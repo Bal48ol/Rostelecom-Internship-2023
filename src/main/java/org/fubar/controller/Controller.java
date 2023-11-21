@@ -9,7 +9,6 @@ import org.fubar.dto.StudentDTO;
 import org.fubar.service.GradeService;
 import org.fubar.service.StudentService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
